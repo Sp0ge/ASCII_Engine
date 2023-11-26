@@ -1,10 +1,14 @@
 class Player(object):
-    def __init__(self, pos=(0,0), speed=1, name="player"):
-        self.skin = "#"
+    def __init__(self, pos=(3,3), speed=1, name="player",fov = 10):
+        self.skin = "⊗"
+        self.fov = int(fov)
         self.pos_x = int(pos[0])
         self.pos_y = int(pos[1])
         self.name = str(name)
         self.speed = int(speed)
+    
+    def get_skin(self):
+        return self.skin
     
     def set_pos(self,cords):
         self.pos_x = int(cords[0])
