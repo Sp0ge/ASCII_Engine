@@ -1,6 +1,11 @@
 class Player(object):
+<<<<<<< Updated upstream
     def __init__(self, pos=(6,12), speed=1, name="Guest_Player",fov = 20):
         self.skin = "◯"
+=======
+    def __init__(self, pos=(3,3), speed=1, name="player",fov = 5):
+        self.skin = "⊗"
+>>>>>>> Stashed changes
         self.fov = int(fov)
         self.pos_x = int(pos[0])
         self.pos_y = int(pos[1])
