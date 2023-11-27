@@ -38,10 +38,10 @@ class Game(Engine):
             if new_pos[1] < len(self.map[0])-1:
                 pos[1]= new_pos[1]
                 
-        if keyboard.is_pressed("e"):
-            new_pos[1] = pos[1] + speed
-            if new_pos[1] < len(self.map[0])-1:
-                pos[1]= new_pos[1]
+        # if keyboard.is_pressed("e"):
+        #     new_pos[1] = pos[1] + speed
+        #     if new_pos[1] < len(self.map[0])-1:
+        #         pos[1]= new_pos[1]
                 
         self.players[0].set_pos(pos)
         self.map_update()
