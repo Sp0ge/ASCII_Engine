@@ -1,28 +1,18 @@
 from player import Player
-from reprint import output
+import os
+from colors import Color
 
 class Engine():
     def __init__(self, size=[30,20]):
         self.running = True
         self.size_x=int(size[0])
         self.size_y=int(size[1])
-        self.delay = 0.01
+        self.delay = 0.025
         
-        self.players = []
-        self.add_player()
+        self.players = Player.add_player(list())
         
         self.map = self.map_gen()
-        
-        with output(initial_len=self.size_y, interval=0) as out_lines:
-            self.display = out_lines
-    
-    def add_player(self):
-        self.players.append(Player(name=f"player_{len(self.players)+1}"))
-    
-    def show_players(self, input_display):
-        for player in self.players:
-            input_display[player.get_pos()[0]][player.get_pos()[1]]=player.get_skin()
-        return input_display
+        self.display = list()
     
     def map_gen(self):
         map = list()
@@ -32,11 +22,11 @@ class Engine():
                 if char == 0 or char == self.size_x-1 or line == 0 or line == self.size_y-1:
                     if line == 0 or line == self.size_y-1:
                         if (char%2)==0: 
-                            l.append("▦")
+                            l.append(Color.random("▦"))
                         else:
                             l.append(" ")
                     else:
-                        l.append("▦")
+                        l.append(Color.random("▦"))
                 else:
                     l.append(" ")
             map.append(l)
@@ -46,46 +36,53 @@ class Engine():
         self.map = self.map_gen()
     
     def display_gen(self):
+        self.display.clear()
         display = self.map
-        display = self.show_players(display)
+        display = Player.show_players(display, self.players)
         return display
     
     def display_show(self):
+        os.system("cls||clear")
+        camera = self.set_camera()
         display = self.display_gen()
         lines = 0
-        camera = self.set_camera(display)
+
         for line in range(camera[0][0],camera[0][1]):
             string = str()
             for char in range(camera[1][0],camera[1][1]):
-                try:
-                    string += str(display[line][char])
-                except:
-                    string += str(" ")      
-                self.display[lines] = string
-        
+                string += str(display[line][char])      
+            print(string)
             lines += 1
-            
-    def set_camera(self, display):
-        x_stop,y_stop = 0,0
-        
+       
+    def set_camera(self):
         pos_x, pos_y = self.players[0].get_pos()[0], self.players[0].get_pos()[1]
-        display_size = [len(display[len(display)//2]), len(display)]
-        fov = self.players[0].fov
-        camera = list([[pos_x-10,pos_x+10],[pos_y-10,pos_y+10]])
+        fov_x = self.players[0].fov
+        fov_y = self.players[0].fov * 2
+        camera = list([[pos_x-fov_x,pos_x+fov_x],[pos_y-fov_y,pos_y+fov_y]])      
+        display_len = [self.size_x,self.size_y]  
         
-        if display_size[0] < camera[0][1]:
-            x_stop = camera[0][1] - display_size[0]
+        #up wall
+        if camera[0][0] < 0:
+            camera[0][0] = 0
+            camera[0][1] = pos_x + fov_x
             
-        if display_size[1] < camera[1][1]:
-            y_stop = camera[1][1] - display_size[1]
+        #left wall
+        if camera[1][0] < 0:
+            camera[1][0] = 0
+            camera[1][1] = pos_y + fov_y
+        
+        #bottom wall
+        if camera[0][1] > display_len[1]:
+            camera[0][1] = display_len[1]
+            camera[0][0] = pos_x - fov_x
             
-        # if display_size[0] > camera[0][1]:
-        #     x_stop =  camera[0][1]-display_size[0]
+        #right wall
+        if camera[1][1] > display_len[0]:
+            camera[1][1] = display_len[0]
+            camera[1][0] = pos_y - fov_y
             
-        # if display_size[1] > camera[1][1]:
-        #     y_stop =  camera[1][1]-display_size[1]
-             
-        camera = list([[pos_x-fov-x_stop,pos_x+fov+x_stop],[pos_y-fov-y_stop,pos_y+fov+y_stop]])       
+        print(camera)     
+                   
         return camera 
                 
 
