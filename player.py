@@ -1,23 +1,31 @@
-class Player(object):
-<<<<<<< Updated upstream
-    def __init__(self, pos=(6,12), speed=1, name="Guest_Player",fov = 20):
+import getpass
+class Player:
+    def __init__(self, pos=(6,12), speed=1, name="player",fov = 20):
         self.skin = "◯"
-=======
-    def __init__(self, pos=(3,3), speed=1, name="player",fov = 5):
-        self.skin = "⊗"
->>>>>>> Stashed changes
+        self.type="player"
         self.fov = int(fov)
         self.pos_x = int(pos[0])
         self.pos_y = int(pos[1])
         self.name = str(name)
         self.speed = int(speed)
+        
+        self.collision=[None,None,None,None]
     
+    def set_collision(self, collision):
+        self.collision = list(collision)
+        
     def get_skin(self):
         return self.skin
     
     def set_pos(self,cords):
-        self.pos_x = int(cords[0])
-        self.pos_y = int(cords[1])
+        if self.pos_x-1 == cords[0] and self.collision[0] is None :
+            self.pos_x = int(cords[0])
+        if self.pos_x+1 == cords[0] and self.collision[1] is None :
+            self.pos_x = int(cords[0])
+        if self.pos_y-1 == cords[1] and self.collision[2] is None :
+            self.pos_y = int(cords[1])
+        if self.pos_y+1 == cords[1] and self.collision[3] is None :
+            self.pos_y = int(cords[1])    
     
     def set_name(self, name):
         self.name = str(name)
@@ -28,8 +36,8 @@ class Player(object):
     def get_name(self):
         return str(self.name)
     
-    def add_player(players):
-        players.append(Player(name=f"player_{len(players)+1}"))
+    def add_player(players, name):
+        players.append(Player(name=f"{name}[{len(players)+1}]"))
         return players
     
     def show_players(input_display, players):

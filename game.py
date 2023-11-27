@@ -3,8 +3,8 @@ import time
 import keyboard
 
 class Game(Engine):
-    def __init__(self, size=[75,25]):
-        Engine.__init__(self, size=size)
+    def __init__(self, size=[75,25], name="Justachankin"):
+        Engine.__init__(self, size=size, name=name)
     
     def run(self):
         while self.running:
@@ -37,7 +37,10 @@ class Game(Engine):
             new_pos[1] = pos[1] + speed
             if new_pos[1] < len(self.map[0])-1:
                 pos[1]= new_pos[1]
-                
+        
+        if keyboard.is_pressed('esc'):
+            quit()
+            
         # if keyboard.is_pressed("e"):
         #     new_pos[1] = pos[1] + speed
         #     if new_pos[1] < len(self.map[0])-1:
