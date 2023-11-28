@@ -1,6 +1,6 @@
 import getpass
 class Player:
-    def __init__(self, pos=(6,12), speed=1, name="player",fov = 20):
+    def __init__(self, pos=(6,12), speed=1, name="player",fov = 11):
         self.skin = "◯"
         self.type="player"
         self.fov = int(fov)
