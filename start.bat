@@ -1,1 +1,1 @@
-start python run.py
+.\venv\Scripts\python.exe .\run.py
