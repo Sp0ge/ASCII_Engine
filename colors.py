@@ -9,7 +9,7 @@ class Color():
                 return f"\033[93m{input}\033[0m"
             case "blue":
                 return f"\033[94m{input}\033[0m"
-            case "white":
+            case _:
                 return f"\033[94m{input}\033[0m"
             
     def random(input):

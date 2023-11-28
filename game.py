@@ -1,5 +1,6 @@
 from engine import Engine
 import time
+import os
 import keyboard
 
 class Game(Engine):
@@ -22,7 +23,7 @@ class Game(Engine):
             if new_pos[0] > 0: 
                 pos[0] = new_pos[0]
                 
-            
+
         if keyboard.is_pressed("a"):
             new_pos[1] = pos[1] - speed
             if new_pos[1] > 0: 
@@ -39,6 +40,7 @@ class Game(Engine):
                 pos[1]= new_pos[1]
         
         if keyboard.is_pressed('esc'):
+            os.system("cls||clear")
             quit()
             
         # if keyboard.is_pressed("e"):

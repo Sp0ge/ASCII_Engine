@@ -10,11 +10,9 @@ class Engine():
         self.size_x=int(size[0])
         self.size_y=int(size[1])
         self.max_objects = int(((size[0]*size[1])//500) * int(spawn_rate))
-        self.delay = 0.001
-        
+        self.delay = 0.05
         self.players = Player.add_player(list(), name)
         self.objects = list()
-        
         self.map = list()
         self.map_gen()
         self.display = list()
@@ -35,12 +33,9 @@ class Engine():
                         l.append("▦")
                 else:
                     if len(self.objects) != self.max_objects and entity == 2:
-                        self.objects.append(Prop(pos=[char,line],name="prop",id=int(len(self.objects)+1),skin="#", have_collision=True, move=False))    
+                        self.objects.append(Prop(pos=[char,line],name="prop",id=int(len(self.objects)+1),skin="#"))    
                     l.append(" ")
-                        
-
             map.append(l)
-        
         self.map = map
         
     def spawn_props(self):
@@ -48,25 +43,7 @@ class Engine():
             pos = obj.get_pos()
             self.display[pos[1]][pos[0]] = str(obj.skin)
         self.display   
-       
-    # Проверка столкновений не работает.
-       
-    def check_player_collision(self):
-        pass
     
-        # for prop in self.objects:
-        #     for player in self.players:
-        #         collision = [None,None,None,None]
-        #         if prop.get_pos()[1] == player.get_pos()[0]+1 and prop.get_pos()[0] == player.get_pos()[1]:
-        #             collision[0] = "up"
-        #         if prop.get_pos()[1] == player.get_pos()[0]-1 and prop.get_pos()[0] == player.get_pos()[1]:
-        #             collision[1] = 'bottom'
-        #         if prop.get_pos()[1] == player.get_pos()[0] and prop.get_pos()[0] == player.get_pos()[1]+1:
-        #             collision[2] = 'left'
-        #         if prop.get_pos()[1] == player.get_pos()[0] and prop.get_pos()[0] == player.get_pos()[1]-1:
-        #             collision[3] = 'right'
-        #         player.set_collision(collision)
-                
     def map_update(self):
         mu = threading.Thread(target=self.map_gen, args=(), daemon=True)
         mu.start()
@@ -84,7 +61,10 @@ class Engine():
     def display_show(self):
         os.system("cls||clear")
         camera = self.set_camera()
-        self.check_player_collision()
+        
+        mu = threading.Thread(target=self.players[0].check_collision, args=([self.objects]), daemon=True)
+        mu.start()
+        mu.join()
         display = self.display_gen()
         for line in range(camera[0][0],camera[0][1]):
             string = str()
@@ -102,28 +82,22 @@ class Engine():
         fov_y = self.players[0].fov * 4
         camera = list([[pos_x-fov_x,pos_x+fov_x],[pos_y-fov_y,pos_y+fov_y]])      
         display_len = [self.size_x,self.size_y]  
-        
         #up wall
         if camera[0][0] < 0:
             camera[0][0] = 0
-            camera[0][1] = pos_x + fov_x
-            
+            camera[0][1] = pos_x + fov_x   
         #left wall
         if camera[1][0] < 0:
             camera[1][0] = 0
             camera[1][1] = pos_y + fov_y
-        
         #bottom wall
         if camera[0][1] > display_len[1]:
             camera[0][1] = display_len[1]
             camera[0][0] = pos_x - fov_x
-            
         #right wall
         if camera[1][1] > display_len[0]:
             camera[1][1] = display_len[0]
-            camera[1][0] = pos_y - fov_y
-          
-                   
+            camera[1][0] = pos_y - fov_y     
         return camera 
                 
 
