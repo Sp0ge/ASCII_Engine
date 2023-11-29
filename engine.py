@@ -10,7 +10,8 @@ class Engine():
         self.size_x=int(size[0])
         self.size_y=int(size[1])
         self.max_objects = int(((size[0]*size[1])//500) * int(spawn_rate))
-        self.delay = 0.05
+        self.entities = list() 
+        self.delay = 0.03
         self.players = Player.add_player(list(), name)
         self.objects = list()
         self.map = list()
@@ -32,18 +33,31 @@ class Engine():
                     else:
                         l.append("▦")
                 else:
-                    if len(self.objects) != self.max_objects and entity == 2:
-                        self.objects.append(Prop(pos=[char,line],name="prop",id=int(len(self.objects)+1),skin="#"))    
+                    if len(self.objects) < self.max_objects and entity == 2:
+                        prop = Prop(pos=[char,line],name="prop",id=int(len(self.objects)+1),skin="#")
+                        if random.randint(2,50) == 3:
+                            prop.change_to("ammo")
+                        self.objects.append(prop)    
                     l.append(" ")
             map.append(l)
         self.map = map
         
     def spawn_props(self):
         for obj in self.objects:
-            pos = obj.get_pos()
-            self.display[pos[1]][pos[0]] = str(obj.skin)
-        self.display   
-    
+            if obj.not_exist:
+                self.objects.pop(self.objects.index(obj))
+            else:
+                pos = obj.get_pos()
+                self.display[pos[1]][pos[0]] = str(obj.skin)
+        for entity in self.entities:
+            
+            if entity.not_exist:
+                self.entities.pop(self.entities.index(entity))
+            else:
+                entity.action(self.players[0],"move")
+                pos = entity.get_pos()
+                self.display[pos[1]][pos[0]] = str(entity.skin)
+                
     def map_update(self):
         mu = threading.Thread(target=self.map_gen, args=(), daemon=True)
         mu.start()
@@ -56,15 +70,23 @@ class Engine():
         mu.start()
         mu.join()
         display = Player.show_players(self.display, self.players)
+        self.players[0].show_stats()
         return display
+    
+    def entities_collision(self):
+        threads = []
+        for entitiy in self.entities:
+            thread=threading.Thread(target=entitiy.check_collision, args=([self.objects]), daemon=True)
+            thread.start()
+            thread.join()
     
     def display_show(self):
         os.system("cls||clear")
         camera = self.set_camera()
-        
         mu = threading.Thread(target=self.players[0].check_collision, args=([self.objects]), daemon=True)
         mu.start()
         mu.join()
+        self.entities_collision()
         display = self.display_gen()
         for line in range(camera[0][0],camera[0][1]):
             string = str()
