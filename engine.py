@@ -1,23 +1,36 @@
 from player import Player
 from prop import Prop
+from server import Server
 import os
 import threading
 import random
 
-class Engine():
-    def __init__(self, size=[200,100], spawn_rate=20, name="Justachankin"):
+class Engine(Server):
+    def __init__(self, size=[200,100], spawn_rate=20, name="Justachankin", server=False):
+        self.server = bool(server)
+        self.remote_ip = ""
+        if not self.server:
+            self.remote_ip=str(input("Ip to Connect>>"))
+        self.host_player_name = str(name)
         self.running = True
         self.size_x=int(size[0])
         self.size_y=int(size[1])
         self.max_objects = int(((size[0]*size[1])//500) * int(spawn_rate))
         self.entities = list() 
         self.delay = 0.03
-        self.players = Player.add_player(list(), name)
+        self.players = Player.add_player(list(), name, id=0)
         self.objects = list()
         self.map = list()
-        self.map_gen()
         self.display = list()
-    
+        Server.__init__(self)
+        if self.server:
+            self.map_gen()
+            self.start_hosting()
+        else:
+            self.connect_to_server(self.ip)
+            #threading.Thread(target=self.connect_to_server, args=([self.remote_ip]), daemon=True).start()
+        
+            
     def map_gen(self):
         map = list()
         for line in range(self.size_y):
@@ -59,9 +72,11 @@ class Engine():
                 self.display[pos[1]][pos[0]] = str(entity.skin)
                 
     def map_update(self):
-        mu = threading.Thread(target=self.map_gen, args=(), daemon=True)
-        mu.start()
-        mu.join()
+        if self.server:
+            mu = threading.Thread(target=self.map_gen, args=(), daemon=True)
+            mu.start()
+            mu.join()
+            
     
     def display_gen(self):
         self.display = list()
@@ -70,7 +85,7 @@ class Engine():
         mu.start()
         mu.join()
         display = Player.show_players(self.display, self.players)
-        self.players[0].show_stats()
+        self.players[0].show_stats(self.ip)
         return display
     
     def entities_collision(self):
@@ -81,6 +96,7 @@ class Engine():
             thread.join()
     
     def display_show(self):
+        # print(self.server_info())
         os.system("cls||clear")
         camera = self.set_camera()
         mu = threading.Thread(target=self.players[0].check_collision, args=([self.objects]), daemon=True)
@@ -96,7 +112,7 @@ class Engine():
                 except IndexError:
                     string += str(' ')      
             print(string)
-
+            #print(self.server_info())
 
     def set_camera(self):
         pos_x, pos_y = self.players[0].get_pos()[0], self.players[0].get_pos()[1]
@@ -122,4 +138,32 @@ class Engine():
             camera[1][0] = pos_y - fov_y     
         return camera 
                 
-
+    def server_info(self):
+        info = str()
+        for player in self.players:
+            info += str(f"{player.get_player_info()}|")
+        for line in self.map:
+            for char in line:
+                info += char
+            info+="|"
+            
+        info +="/" 
+        for prop in self.entities:
+            info += str(f"{prop.parent}|{prop.pos[0]}|{prop.pos[1]}|{prop.direction}/")
+        return info
+    
+    def import_server_info(self, info):
+        data = info.split("/")
+        if data[0] != "conn_info":
+            print(data)
+            pre_map = list(data[1].split("|"))
+            for part in pre_map:
+                self.map.append(list(part.split("")))
+            for player_update in data[0].split("|"):
+                for player in self.players:
+                    if str(player.id) ==  str(player_update[0]):
+                        player.update(player_update)
+            for prop in data[2].split("|"):
+                if prop.parent != str(self.players[0].id):
+                    self.entities.append(Prop(parent=prop.parent, pos=(prop.pos[0], prop.pos[1]), direction=prop.directions)) 
+        

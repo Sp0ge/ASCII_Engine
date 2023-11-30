@@ -5,14 +5,15 @@ import os
 import keyboard
 
 class Game(Engine):
-    def __init__(self, size=[75,25], name="Justachankin"):
-        Engine.__init__(self, size=size, name=name)
+    def __init__(self, size, name, server=False):
+        Engine.__init__(self, size=size, name=name, server=server)
     
-    def run(self):
+    def game_run(self, ip=None, port=25097):
         while self.running:
             self.check_events()
             self.display_show()
             time.sleep(self.delay)
+        
     
     def check_events(self):
         pos = self.players[0].get_pos()
@@ -39,10 +40,6 @@ class Game(Engine):
             new_pos[1] = pos[1] + speed
             if new_pos[1] < len(self.map[0])-1:
                 pos[1]= new_pos[1]
-        
-        if keyboard.is_pressed('esc'):
-            os.system("cls||clear")
-            quit()
             
         if keyboard.is_pressed("e"):
             self.players[0].action=True
@@ -51,28 +48,20 @@ class Game(Engine):
         
         if self.players[0].bullets > 0:
             if keyboard.is_pressed("left arrow"):
-                self.players[0].bullets -= 1
-                obj = Prop(name="bullet",parent=self.players[0], id=len(self.objects)+1,pos=[pos[1],pos[0]], direction=0)
-                obj.change_to("bullet")
-                self.entities.append(obj)   
-            
+                self.entities.append(self.players[0].shooting(0, self.objects))    
+
             elif keyboard.is_pressed("right arrow"):
-                self.players[0].bullets -= 1
-                obj = Prop(name="bullet",parent=self.players[0], id=len(self.objects)+1,pos=[pos[1],pos[0]], direction=1)
-                obj.change_to("bullet")
-                self.entities.append(obj)    
+                self.entities.append(self.players[0].shooting(1, self.objects))    
             
             elif keyboard.is_pressed("up arrow"):
-                self.players[0].bullets -= 1
-                obj = Prop(name="bullet",parent=self.players[0], id=len(self.objects)+1,pos=[pos[1],pos[0]], direction=2)
-                obj.change_to("bullet")
-                self.entities.append(obj)    
+                self.entities.append(self.players[0].shooting(2, self.objects))       
             
             elif keyboard.is_pressed("down arrow"):
-                self.players[0].bullets -= 1
-                obj = Prop(name="bullet",parent=self.players[0], id=len(self.objects)+1,pos=[pos[1],pos[0]], direction=3)
-                obj.change_to("bullet")
-                self.entities.append(obj)     
-                
+                self.entities.append(self.players[0].shooting(3, self.objects))    
+        
+        if keyboard.is_pressed('esc'):
+            os.system("cls||clear")
+            quit()
+        
         self.players[0].set_pos(pos)
         self.map_update()

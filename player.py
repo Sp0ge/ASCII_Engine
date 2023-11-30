@@ -1,15 +1,18 @@
+from prop import Prop
+
 class Player_Stats():
     def __init__(self):
         self.health = 100
         self.bullets = 10
         
-    def show_stats(self):
-        print(str(f"[ HP: {self.health} ] [ Bullets: {self.bullets} ]"))
+    def show_stats(self, ip):
+        print(str(f"[ HP: {self.health} ] [ Bullets: {self.bullets} ] [IP: {ip} ]"))
       
 
 
 class Player(Player_Stats):
-    def __init__(self, pos=(6,12), speed=1, name="player",fov = 10):
+    def __init__(self, pos=(6,12), speed=1, name="player",fov = 10, id=0):
+        self.id = int(id) 
         self.skin = "O"
         self.type="player"
         self.hit_box = 1
@@ -63,7 +66,12 @@ class Player(Player_Stats):
             self.moving=[None,None,None,None]
             self.pos_y = int(cords[1])
             self.moving[1] = True
-            
+    
+    def shooting(self, direct,objects):
+        obj=Prop(name="bullet",parent=str(self.id), id=len(objects)+1,pos=[self.pos_y,self.pos_x], direction=direct)
+        obj.change_to("bullet")
+        self.bullets -= 1
+        return obj
         
     def set_name(self, name):
         self.name = str(name)
@@ -77,16 +85,30 @@ class Player(Player_Stats):
     def get_health(self):
         return str(self.health)
     
-    def add_player(players, name):
-        players.append(Player(name=f"{name}[{len(players)+1}]"))
+    def add_player(players, name, id=None):
+        if id is None:
+            players.append(Player(name=name, id=0))
+        else:
+            players.append(Player(name=name, id=int(id)+1))
         return players
     
     def show_players(input_display, players):
         for player in players:
-            input_display[player.get_pos()[0]][player.get_pos()[1]]=player.get_skin()
+            y,x = player.get_pos()[0], player.get_pos()[1]
+            input_display[y][x]=player.get_skin()
             title = player.get_name() + "|HP" + player.get_health() + "%"
             name_len = len(title)
             for char in range(0,name_len):
                 if len(input_display[0]) > (player.get_pos()[1]-(name_len//2)+char):
                     input_display[player.get_pos()[0]-2][player.get_pos()[1]-(name_len//2)+char] = title[char]
         return input_display
+    
+    def get_player_info(self):
+        return self.id, self.pos_x,self.pos_y,self.health,self.bullets,self.name
+    
+    def update(self, data):
+        self.pos_x = int(data[1])
+        self.pos_y = int(data[2])
+        self.health = int(data[3])
+        self.bullets = int(data[4])
+        self.name = str(data[5])
