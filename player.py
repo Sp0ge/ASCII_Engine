@@ -104,7 +104,7 @@ class Player(Player_Stats):
         return input_display
     
     def get_player_info(self):
-        return self.id, self.pos_x,self.pos_y,self.health,self.bullets,self.name
+        return '"' + str(self.id) + '":{"pos_x":"' + str(self.pos_x) + '","pos_y":"' + str(self.pos_y) + '","health":"' + str(self.health) + '","bullets":"' + str(self.bullets) + '","name":"' + str(self.name) + '"},'
     
     def update(self, data):
         self.pos_x = int(data[1])

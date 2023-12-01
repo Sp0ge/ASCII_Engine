@@ -1,6 +1,7 @@
 from player import Player
 from prop import Prop
 from server import Server
+import json
 import os
 import threading
 import random
@@ -29,7 +30,7 @@ class Engine(Server):
         else:
             self.connect_to_server(self.ip)
             #threading.Thread(target=self.connect_to_server, args=([self.remote_ip]), daemon=True).start()
-        
+        quit()
             
     def map_gen(self):
         map = list()
@@ -138,19 +139,30 @@ class Engine(Server):
             camera[1][0] = pos_y - fov_y     
         return camera 
                 
-    def server_info(self):
-        info = str()
+    def export_server_info(self):
+        info = str('{"players":{')
+        
         for player in self.players:
-            info += str(f"{player.get_player_info()}|")
+            info = info + player.get_player_info()
+        info = info[:-1]   
+        print("1")
+        map = str()
         for line in self.map:
-            for char in line:
-                info += char
-            info+="|"
+            map = map + ''.join(line)
+        info = info + '},"map":{"size_x":"' + str(self.size_x) + '","size_y":"' + str(self.size_x) + '","data":"' + '▦ ▦ ▦ ▦ ▦ ▦' + '"},'
+        
+        if len(self.entities) > 0:
+            info = info + '"entities":{'
+            for prop in self.entities:
+                info = info + str(f'"{prop.id}":{"parent":"{prop.parent}"", "pos_x":"{prop.pos[0]}", "pos_y":"{prop.pos[1]}", "direction":"{prop.direction}"},')
+            info = info[:-1] + "}"      
+        else:
+            info = info[:-1]
             
-        info +="/" 
-        for prop in self.entities:
-            info += str(f"{prop.parent}|{prop.pos[0]}|{prop.pos[1]}|{prop.direction}/")
-        return info
+        info = info + "}"
+   
+        out = json.loads(str(info))
+        return out
     
     def import_server_info(self, info):
         data = info.split("/")

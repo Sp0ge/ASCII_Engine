@@ -3,6 +3,7 @@ import os
 import random
 import traceback
 import threading
+import json
 import socket
 
 class Server():
@@ -27,7 +28,7 @@ class Server():
                 if retry < 10:
                     break
                 retry += 1
-                print(e)
+                print(Exception,e)
                 
         if self.bind_status:
             print(f"+ Bind on {self.ip}:{self.port} complete.")
@@ -45,7 +46,7 @@ class Server():
                 self.connected_client_thread(conn, addr)
                 #self.connected_users.append(threading.Thread(target=self.connected_client_thread, args=([conn, addr])).start())
             except Exception as e:
-                print(e)
+                traceback.print_exc()
             
     def connect_to_server(self, ip, port=25097):
         self.ip = str(ip)
@@ -53,15 +54,11 @@ class Server():
         for i in range(11):
             try:
                 self.sock.connect((ip, port))
-                print("pl")
-                if self.players[0].id != 0:
-                    id = self.sock.recv(1024*2).decode("utf-8")
-                    Player.add_player(self.players ,str(self.host_player_name), int(id))
                 self.server_connect_thread()
                 #threading.Thread(target=self., args=([]), daemon=True)
                 return True
             except Exception as e:
-                print(e)
+                traceback.print_exc()
                 print(f"Trying to connect... {11-i}")
             
         return False
@@ -71,44 +68,39 @@ class Server():
         self.players.append(player)
         id = len(self.players)
         player.id = id
-        conn.send(str.encode(str(id)))
+        info = self.export_server_info()
+        conn.send(json.dumps(info).encode("utf-8"))
+        print("Info sended")
         while self.server_up and self.running:
             try:
-                data = conn.recv(1024*2).decode('utf-8').split(",")
-
-                if not data:
+                data = conn.recv(1024*2).decode('utf-8')
+                data = list(data.split(","))
+                if not data[0]:
                     print(f"+ {addr} disconnected")
                     break
                 else:
-                    if data[0] == "conn_info":
-                        socket.socket.sendto(conn,str.encode(str(id)),addr)
-                        player.set_pos((int(data[0]),int(data[1])))
-                        player.health = int(data[2])
-                        player.bullets = int(data[3])
-                        player.set_name(str(data[4]))
-                    else:
-                        self.import_server_info(str(data))
+                    print("\n\n\n", str(data) ,"\n\n\n")
                         
-                conn.sendall(str.encode(self.server_info()))
+                conn.sendall(str.encode(data[0]))
             except Exception as e:
-                print(traceback.format_exc())
+                traceback.print_exc()
                 break
             
     def server_connect_thread(self):
-        self.sock.send(str.encode(self.players[0].get_player_info_full()))    
+        self.sock.send(str.encode(self.server_))    
         while self.running:
             try:
-                data = str(self.sock.recv(1024*2).decode("utf-8"))
-                print(data)
+                data = self.sock.recv(1024*2).decode("utf-8")
+                
                 if not data:
                     self.sock.close()
                     self.connect_to_server(self.ip, self.port)
                     break
                 else:
-                    self.sock.send(str.encode(self.server_info()))
-                    
+                    data = self.sock.send(data)
+                     
             except Exception as e:
-                print(traceback.format_exc())
+                traceback.print_exc()
                 break
                
             
