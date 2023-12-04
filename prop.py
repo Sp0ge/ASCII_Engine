@@ -20,7 +20,7 @@ class Prop():
     def change_to(self, type):
         match type:
             case "ammo":
-                self.skin =  "◘"
+                self.skin =  "$"
                 self.color = "red"
             case "prop":
                 self.skin =  "#"

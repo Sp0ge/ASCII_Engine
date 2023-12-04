@@ -1,4 +1,5 @@
 from player import Player
+import time
 import os
 import random
 import traceback
@@ -69,36 +70,58 @@ class Server():
         id = len(self.players)
         player.id = id
         info = self.export_server_info()
+        conn.send(json.dumps('{"player_id":"' + str(player.id) + '"}').encode("utf-8"))
         conn.send(json.dumps(info).encode("utf-8"))
         print("Info sended")
         while self.server_up and self.running:
             try:
-                data = conn.recv(1024*2).decode('utf-8')
-                data = list(data.split(","))
-                if not data[0]:
+                data = json.loads(json.loads(conn.recv(1024*2).decode('utf-8')))
+            except Exception:
+                data = json.loads(conn.recv(1024*2).decode('utf-8'))
+            try:
+                if not data:
+                    print("4")
                     print(f"+ {addr} disconnected")
+                    self.players.remove(player)
                     break
                 else:
-                    print("\n\n\n", str(data) ,"\n\n\n")
-                        
-                conn.sendall(str.encode(data[0]))
-            except Exception as e:
-                traceback.print_exc()
+                    print("2")
+                    if "player_id" in data:
+                        if int(data['player_id']) == player.id:
+                            print(f"Client id[{id}] ACCEPTED")
+                    #self.import_server_info(data)
+                    data = self.export_server_info()
+                conn.sendall(str.encode(json.dumps(data)))
+                    
+            except Exception:                
+                print(f"+ {addr} disconnected")
+                self.players.remove(player)
                 break
             
+            
     def server_connect_thread(self):
-        self.sock.send(str.encode(self.server_))    
         while self.running:
             try:
-                data = self.sock.recv(1024*2).decode("utf-8")
-                
+                try:
+                    data = json.loads(json.loads(str(self.sock.recv(1024*2).decode("utf-8"))))
+                except Exception:
+                    data = json.loads(str(self.sock.recv(1024*2).decode("utf-8")))
                 if not data:
+                    print("1")
                     self.sock.close()
                     self.connect_to_server(self.ip, self.port)
                     break
                 else:
-                    data = self.sock.send(data)
-                     
+                    if "player_id" in data:
+                        print("2")
+                        self.id = data['player_id']
+                        print("send player accept")
+                        self.sock.send(json.dumps('{"player_id":"' + str(self.id) + '"}').encode("utf-8"))
+                    else:
+                        print("3")
+                        print(data)
+                        #self.import_server_info(data)
+                        self.sock.send(str.encode(json.dumps(self.export_server_info())))
             except Exception as e:
                 traceback.print_exc()
                 break

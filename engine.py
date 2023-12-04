@@ -41,11 +41,11 @@ class Engine(Server):
                 if char == 0 or char == self.size_x-1 or line == 0 or line == self.size_y-1:
                     if line == 0 or line == self.size_y-1:
                         if (char%2)==0: 
-                            l.append("▦")
+                            l.append("@")
                         else:
                             l.append(" ")
                     else:
-                        l.append("▦")
+                        l.append("@")
                 else:
                     if len(self.objects) < self.max_objects and entity == 2:
                         prop = Prop(pos=[char,line],name="prop",id=int(len(self.objects)+1),skin="#")
@@ -141,16 +141,18 @@ class Engine(Server):
                 
     def export_server_info(self):
         info = str('{"players":{')
-        
+        print("export 1")
         for player in self.players:
             info = info + player.get_player_info()
         info = info[:-1]   
-        print("1")
+        
+        print("export 2")
         map = str()
         for line in self.map:
             map = map + ''.join(line)
-        info = info + '},"map":{"size_x":"' + str(self.size_x) + '","size_y":"' + str(self.size_x) + '","data":"' + '▦ ▦ ▦ ▦ ▦ ▦' + '"},'
         
+        print("export 3")
+        info = info + '},"map":{"size_x":"' + str(self.size_x) + '","size_y":"' + str(self.size_x) + '","data":"' + str(map) + '"},'
         if len(self.entities) > 0:
             info = info + '"entities":{'
             for prop in self.entities:
@@ -160,22 +162,21 @@ class Engine(Server):
             info = info[:-1]
             
         info = info + "}"
-   
-        out = json.loads(str(info))
-        return out
+        
+        print("export fin")
+        return info
     
     def import_server_info(self, info):
-        data = info.split("/")
-        if data[0] != "conn_info":
-            print(data)
-            pre_map = list(data[1].split("|"))
-            for part in pre_map:
-                self.map.append(list(part.split("")))
-            for player_update in data[0].split("|"):
-                for player in self.players:
-                    if str(player.id) ==  str(player_update[0]):
-                        player.update(player_update)
-            for prop in data[2].split("|"):
-                if prop.parent != str(self.players[0].id):
-                    self.entities.append(Prop(parent=prop.parent, pos=(prop.pos[0], prop.pos[1]), direction=prop.directions)) 
+        pass
+        # if data[0] != "conn_info":
+        #     pre_map = list(data[1].split("|"))
+        #     for part in pre_map:
+        #         self.map.append(list(part.split("")))
+        #     for player_update in data[0].split("|"):
+        #         for player in self.players:
+        #             if str(player.id) ==  str(player_update[0]):
+        #                 player.update(player_update)
+        #     for prop in data[2].split("|"):
+        #         if prop.parent != str(self.players[0].id):
+        #             self.entities.append(Prop(parent=prop.parent, pos=(prop.pos[0], prop.pos[1]), direction=prop.directions)) 
         
