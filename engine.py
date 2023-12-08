@@ -141,18 +141,14 @@ class Engine(Server):
                 
     def export_server_info(self):
         info = str('{"players":{')
-        print("export 1")
         for player in self.players:
             info = info + player.get_player_info()
         info = info[:-1]   
         
-        print("export 2")
         map = str()
         for line in self.map:
             map = map + ''.join(line)
-        
-        print("export 3")
-        info = info + '},"map":{"size_x":"' + str(self.size_x) + '","size_y":"' + str(self.size_x) + '","data":"' + str(map) + '"},'
+        info = info + '},"map":{"size_x":"' + str(self.size_x) + '","size_y":"' + str(self.size_x) + '","data":"' + "asda" + '"},'
         if len(self.entities) > 0:
             info = info + '"entities":{'
             for prop in self.entities:
@@ -163,7 +159,6 @@ class Engine(Server):
             
         info = info + "}"
         
-        print("export fin")
         return info
     
     def import_server_info(self, info):
