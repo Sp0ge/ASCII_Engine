@@ -2,6 +2,7 @@ from player import Player
 from prop import Prop
 from server import Server
 import json
+import traceback
 import os
 import threading
 import random
@@ -145,10 +146,11 @@ class Engine(Server):
             info = info + player.get_player_info()
         info = info[:-1]   
         
-        map = str()
-        for line in self.map:
-            map = map + ''.join(line)
-        info = info + '},"map":{"size_x":"' + str(self.size_x) + '","size_y":"' + str(self.size_x) + '","data":"' + "asda" + '"},'
+        data = str()
+        
+        for num, line in enumerate(self.map):
+            data += f"'{num}':'{''.join(line)}',"
+        info = info + '},"map":{"size_x":"' + str(self.size_x) + '","size_y":"' + str(self.size_x) + '","data":{' + data[:-1] + '}},'
         if len(self.entities) > 0:
             info = info + '"entities":{'
             for prop in self.entities:
@@ -158,20 +160,25 @@ class Engine(Server):
             info = info[:-1]
             
         info = info + "}"
-        
         return info
     
     def import_server_info(self, info):
-        pass
-        # if data[0] != "conn_info":
-        #     pre_map = list(data[1].split("|"))
-        #     for part in pre_map:
-        #         self.map.append(list(part.split("")))
-        #     for player_update in data[0].split("|"):
-        #         for player in self.players:
-        #             if str(player.id) ==  str(player_update[0]):
-        #                 player.update(player_update)
-        #     for prop in data[2].split("|"):
-        #         if prop.parent != str(self.players[0].id):
-        #             self.entities.append(Prop(parent=prop.parent, pos=(prop.pos[0], prop.pos[1]), direction=prop.directions)) 
-        
+        try:
+            for player in info.players:
+                try:
+                    self.players[int(player)].update(player)
+                except Exception:
+                    self.players.append(Player.add_player(list(), "Connecting", id=int(player)))
+        except Exception:
+            traceback.print_exc()
+        try:
+            map = info.map
+            self.size_x = int(map.size_x)
+            self.size_y = int(map.size_y)
+            map_data = []
+            for line in map.data:
+                map_data.append(line.value)
+            self.map = map_data
+        except Exception:
+            traceback.print_exc()
+            pass

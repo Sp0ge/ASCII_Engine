@@ -107,8 +107,8 @@ class Player(Player_Stats):
         return '"' + str(self.id) + '":{"pos_x":"' + str(self.pos_x) + '","pos_y":"' + str(self.pos_y) + '","health":"' + str(self.health) + '","bullets":"' + str(self.bullets) + '","name":"' + str(self.name) + '"},'
     
     def update(self, data):
-        self.pos_x = int(data[1])
-        self.pos_y = int(data[2])
-        self.health = int(data[3])
-        self.bullets = int(data[4])
-        self.name = str(data[5])
+        self.pos_x = int(data.pos_x)
+        self.pos_y = int(data.pos_y)
+        self.health = int(data.health)
+        self.bullets = int(data.bullets)
+        self.name = str(data.name)

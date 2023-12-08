@@ -15,7 +15,7 @@ class Server():
         self.bind_status = False
         self.connect_status = False
         self.port = int(25097)
-        self.ip = "127.0.0.1"#str(socket.gethostbyname(socket.gethostname()))
+        self.ip = "192.168.0.26"#str(socket.gethostbyname(socket.gethostname()))
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         
@@ -44,8 +44,7 @@ class Server():
             try:
                 conn, addr = self.sock.accept()
                 print(f'+ {addr} is connected.')
-                self.connected_client_thread(conn, addr)
-                #self.connected_users.append(threading.Thread(target=self.connected_client_thread, args=([conn, addr])).start())
+                self.connected_users.append(threading.Thread(target=self.connected_client_thread, args=([conn, addr])).start())
             except Exception as e:
                 traceback.print_exc()
             
@@ -72,11 +71,10 @@ class Server():
         player.id = id
         info = self.export_server_info()
         conn.send(json.dumps('{"player_id":"' + str(player.id) + '"}').encode("utf-8"))
-        print(info)
         conn.send(json.dumps(info).encode("utf-8"))
         print("Info sended")
         while self.server_up and self.running:
-            data = str(conn.recv(1024*2).decode('utf-8'))
+            data = str(conn.recv(1024*1024).decode('utf-8'))
             try:
                 if not data:
                     print(f"+ {addr} disconnected")
@@ -84,28 +82,30 @@ class Server():
                     break
                 else:
                     try:
-                        data = json.loads(data)
-                    except: 
                         data = json.loads(json.loads(data))
+                    except Exception: 
+                        data = json.loads(data)
+                        pass
+                    
                     if "player_id" in data:
                         if int(data['player_id']) == player.id:
                             print(f"Client id[{id}] ACCEPTED")
-                    #self.import_server_info(data)
+                    print(info)
+                    self.import_server_info(data)
                     data = self.export_server_info()
                 conn.sendall(str.encode(json.dumps(data)))
                 
                     
             except Exception:                
-                print(f"+ {addr} disconnected")
+                traceback.print_exc()
                 self.players.remove(player)
                 break
             
             
     def server_connect_thread(self):
         while self.running:
-            print("running")
             try:
-                data = self.sock.recv(1024*2).decode("utf-8")
+                data = self.sock.recv(1024*1024).decode("utf-8")
                 if not data:
                     self.sock.close()
                     print("Connection Closed")
@@ -114,17 +114,19 @@ class Server():
                     try:
                         data = json.loads(json.loads(data))
                     except: 
-                        data = json.loads(data)  
+                        data = json.loads(data)
+                        pass
+                     
                     if "player_id" in data:
                         self.id = data['player_id']
                         print("send player accept")
                         self.sock.send(json.dumps('{"player_id":"' + str(self.id) + '"}').encode("utf-8"))
                     else:
-                        print(data)
-                        #self.import_server_info(data)
+                        self.import_server_info(data)
                         self.sock.send(str.encode(json.dumps(self.export_server_info())))
                         
             except Exception as e:
+                print("error")
                 traceback.print_exc()
                 break
                
