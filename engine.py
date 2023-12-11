@@ -160,9 +160,10 @@ class Engine(Server):
             info = info[:-1]
             
         info = info + "}"
-        return info
+        return info.replace("'",'"')
     
     def import_server_info(self, info):
+        print(info.player)
         try:
             for player in info.players:
                 try:
@@ -181,4 +182,5 @@ class Engine(Server):
             self.map = map_data
         except Exception:
             traceback.print_exc()
+            quit()
             pass

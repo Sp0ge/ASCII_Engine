@@ -57,6 +57,7 @@ class Server():
                 p = threading.Thread(target=self.server_connect_thread, args=([]), daemon=True)
                 p.start()
                 p.join()
+                self.server_connect_thread
                 return True
             except Exception as e:
                 traceback.print_exc()
@@ -74,7 +75,7 @@ class Server():
         conn.send(json.dumps(info).encode("utf-8"))
         print("Info sended")
         while self.server_up and self.running:
-            data = str(conn.recv(1024*1024).decode('utf-8'))
+            data = conn.recv(1024*1024).decode('utf-8')
             try:
                 if not data:
                     print(f"+ {addr} disconnected")
@@ -85,13 +86,12 @@ class Server():
                         data = json.loads(json.loads(data))
                     except Exception: 
                         data = json.loads(data)
-                        pass
-                    
                     if "player_id" in data:
                         if int(data['player_id']) == player.id:
                             print(f"Client id[{id}] ACCEPTED")
-                    print(info)
-                    self.import_server_info(data)
+                        else:
+                            self.import_server_info(data)
+                    #print(info)
                     data = self.export_server_info()
                 conn.sendall(str.encode(json.dumps(data)))
                 
@@ -106,6 +106,7 @@ class Server():
         while self.running:
             try:
                 data = self.sock.recv(1024*1024).decode("utf-8")
+                print(data)
                 if not data:
                     self.sock.close()
                     print("Connection Closed")
@@ -115,8 +116,6 @@ class Server():
                         data = json.loads(json.loads(data))
                     except: 
                         data = json.loads(data)
-                        pass
-                     
                     if "player_id" in data:
                         self.id = data['player_id']
                         print("send player accept")
