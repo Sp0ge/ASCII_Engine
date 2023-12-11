@@ -10,7 +10,6 @@ import random
 class Engine(Server):
     def __init__(self, size=[200,100], spawn_rate=20, name="Justachankin", server=False):
         self.server = bool(server)
-        self.id = 0
         self.remote_ip = ""
         if not self.server:
             self.remote_ip=str(input("Ip to Connect>>"))
@@ -26,14 +25,15 @@ class Engine(Server):
         self.map = list()
         self.display = list()
         Server.__init__(self)
-        self.map_gen()
         if self.server:
+            self.map_gen()
             self.start_hosting()
         else:
-            self.connect_to_server(self.remote_ip)
+            self.connect_to_server(self.ip)
+            self.sever = threading.Thread(target=self.connect_to_server, args=([self.remote_ip]), daemon=True).start()
+            print("ready")
             
     def map_gen(self):
-        print('map_gen')
         map = list()
         for line in range(self.size_y):
             l = list()
@@ -58,7 +58,6 @@ class Engine(Server):
         self.map = map
         
     def spawn_props(self):
-        print('spawn_props')
         for obj in self.objects:
             if obj.not_exist:
                 self.objects.pop(self.objects.index(obj))
@@ -75,26 +74,23 @@ class Engine(Server):
                 self.display[pos[1]][pos[0]] = str(entity.skin)
                 
     def map_update(self):
-        print('map_update')
-        if not self.server:
+        if self.server:
             mu = threading.Thread(target=self.map_gen, args=(), daemon=True)
             mu.start()
-        
+            mu.join()
             
     
     def display_gen(self):
-        print('display_gen')
         self.display = list()
         self.display = self.map
         mu = threading.Thread(target=self.spawn_props, args=(), daemon=True)
         mu.start()
         mu.join()
         display = Player.show_players(self.display, self.players)
-        self.players[0].show_stats(self)
+        self.players[0].show_stats(self.ip)
         return display
     
     def entities_collision(self):
-        print('entities_collision')
         threads = []
         for entitiy in self.entities:
             thread=threading.Thread(target=entitiy.check_collision, args=([self.objects]), daemon=True)
@@ -102,7 +98,6 @@ class Engine(Server):
             thread.join()
     
     def display_show(self):
-        print('display_show')
         # print(self.server_info())
         os.system("cls||clear")
         camera = self.set_camera()
@@ -122,7 +117,6 @@ class Engine(Server):
             #print(self.server_info())
 
     def set_camera(self):
-        print('set_camera')
         pos_x, pos_y = self.players[0].get_pos()[0], self.players[0].get_pos()[1]
         fov_x = self.players[0].fov
         fov_y = self.players[0].fov * 4
@@ -147,7 +141,6 @@ class Engine(Server):
         return camera 
                 
     def export_server_info(self):
-        print('export_server_info')
         info = str('{"players":{')
         for player in self.players:
             try:
@@ -166,32 +159,20 @@ class Engine(Server):
             info = info + '"entities":{'
             for prop in self.entities:
                 info = info + str(f'"{prop.id}":{"parent":"{prop.parent}"", "pos_x":"{prop.pos[0]}", "pos_y":"{prop.pos[1]}", "direction":"{prop.direction}"},')
-            info = info[:-1] + "},"      
-        else:
-            info = info[:-1]
-        
-        if len(self.objects) > 0: 
-            info = info + '"objects":{'
-            for obj in self.objects:
-                info = info + str(f'"{obj.id}":{"parent":"{obj.parent}"", "pos_x":"{obj.pos[0]}", "pos_y":"{obj.pos[1]}", "direction":"{obj.direction}"},')
             info = info[:-1] + "}"      
         else:
             info = info[:-1]
-        
+            
         info = info + "}"
         return info.replace("'",'"')
     
     def import_server_info(self, info):
-        self.players = []
-        print('import_server_info')
         try:
             for player in info['players']:
-                pl = Player.add_player(list(), "Connecting", id=int(player))
-                if int(player) == int(self.id):
-                    self.players.insert(0,pl)
-                else:
-                    self.players.append(pl)
-                
+                try:
+                    self.players[int(player)].update(player)
+                except Exception:
+                    self.players.append(Player.add_player(list(), "Connecting", id=int(player)))
         except Exception:
             traceback.print_exc()
         try:
@@ -203,6 +184,7 @@ class Engine(Server):
                 map_data.append(list())
                 for chr in string:
                     map_data[int(line)].append(chr)
+                
             self.map = map_data
         except Exception:
             traceback.print_exc()

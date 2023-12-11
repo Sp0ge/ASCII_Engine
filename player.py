@@ -5,14 +5,14 @@ class Player_Stats():
         self.health = 100
         self.bullets = 10
         
-    def show_stats(self,eng):
-        print(str(f"[ HP: {self.health} ] [ Bullets: {self.bullets} ] [ID: {eng.players[0].id}] [Players: {len(eng.players)}]"))
+    def show_stats(self, ip):
+        print(str(f"[ HP: {self.health} ] [ Bullets: {self.bullets} ] [IP: {ip} ]"))
       
 
 
 class Player(Player_Stats):
     def __init__(self, pos=(6,12), speed=1, name="player",fov = 10, id=0):
-        self.id = id
+        self.id = int(id) 
         self.skin = "O"
         self.type="player"
         self.hit_box = 1
@@ -99,13 +99,12 @@ class Player(Player_Stats):
             except:
                 player = player
             x,y = int(player.get_pos()[0]), int(player.get_pos()[1])
-            if len(input_display) > x and len(input_display[x]) > y:
-                input_display[x][y]=player.get_skin()
-                title = player.get_name() + "|" + str(player.id) + "|HP" + player.get_health() + "%"
-                name_len = len(title)
-                for char in range(0,name_len):
-                    if len(input_display[0]) > (player.get_pos()[1]-(name_len//2)+char):
-                        input_display[player.get_pos()[0]-2][player.get_pos()[1]-(name_len//2)+char] = title[char]
+            input_display[x][y]=player.get_skin()
+            title = player.get_name() + "|HP" + player.get_health() + "%"
+            name_len = len(title)
+            for char in range(0,name_len):
+                if len(input_display[0]) > (player.get_pos()[1]-(name_len//2)+char):
+                    input_display[player.get_pos()[0]-2][player.get_pos()[1]-(name_len//2)+char] = title[char]
         return input_display
     
     def get_player_info(self):
