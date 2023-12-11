@@ -10,6 +10,7 @@ import random
 class Engine(Server):
     def __init__(self, size=[200,100], spawn_rate=20, name="Justachankin", server=False):
         self.server = bool(server)
+        self.id = 9
         self.remote_ip = ""
         if not self.server:
             self.remote_ip=str(input("Ip to Connect>>"))
@@ -20,20 +21,20 @@ class Engine(Server):
         self.max_objects = int(((size[0]*size[1])//500) * int(spawn_rate))
         self.entities = list() 
         self.delay = 0.03
-        self.players = Player.add_player(list(), name, id=0)
+        self.players = Player.add_player(list(), name, id=1)
         self.objects = list()
         self.map = list()
         self.display = list()
         Server.__init__(self)
         if self.server:
             self.map_gen()
-            self.start_hosting()
+            threading.Thread(target=self.start_hosting, args=(), daemon=True).start()
         else:
             self.connect_to_server(self.ip)
-            #threading.Thread(target=self.connect_to_server, args=([self.remote_ip]), daemon=True).start()
-        quit()
+            self.sever = threading.Thread(target=self.connect_to_server, args=([self.remote_ip]), daemon=True).start()
             
     def map_gen(self):
+        print('map_gen')
         map = list()
         for line in range(self.size_y):
             l = list()
@@ -58,6 +59,7 @@ class Engine(Server):
         self.map = map
         
     def spawn_props(self):
+        print('spawn_props')
         for obj in self.objects:
             if obj.not_exist:
                 self.objects.pop(self.objects.index(obj))
@@ -74,23 +76,25 @@ class Engine(Server):
                 self.display[pos[1]][pos[0]] = str(entity.skin)
                 
     def map_update(self):
-        if self.server:
-            mu = threading.Thread(target=self.map_gen, args=(), daemon=True)
-            mu.start()
-            mu.join()
+        print('map_update')
+        mu = threading.Thread(target=self.map_gen, args=(), daemon=True)
+        mu.start()
+        mu.join()
             
     
     def display_gen(self):
+        print('display_gen')
         self.display = list()
         self.display = self.map
         mu = threading.Thread(target=self.spawn_props, args=(), daemon=True)
         mu.start()
         mu.join()
         display = Player.show_players(self.display, self.players)
-        self.players[0].show_stats(self.ip)
+        self.players[0].show_stats(self)
         return display
     
     def entities_collision(self):
+        print('entities_collision')
         threads = []
         for entitiy in self.entities:
             thread=threading.Thread(target=entitiy.check_collision, args=([self.objects]), daemon=True)
@@ -98,6 +102,7 @@ class Engine(Server):
             thread.join()
     
     def display_show(self):
+        print('display_show')
         # print(self.server_info())
         os.system("cls||clear")
         camera = self.set_camera()
@@ -117,6 +122,7 @@ class Engine(Server):
             #print(self.server_info())
 
     def set_camera(self):
+        print('set_camera')
         pos_x, pos_y = self.players[0].get_pos()[0], self.players[0].get_pos()[1]
         fov_x = self.players[0].fov
         fov_y = self.players[0].fov * 4
@@ -141,46 +147,64 @@ class Engine(Server):
         return camera 
                 
     def export_server_info(self):
+        print('export_server_info')
         info = str('{"players":{')
         for player in self.players:
-            info = info + player.get_player_info()
+            try:
+                info = info + player.get_player_info()
+            except:
+                info = info + player[-1].get_player_info()
         info = info[:-1]   
         
         data = str()
         
         for num, line in enumerate(self.map):
-            data += f"'{num}':'{''.join(line)}',"
+            data += f'"{num}":"{"".join(line)}",'
+        
         info = info + '},"map":{"size_x":"' + str(self.size_x) + '","size_y":"' + str(self.size_x) + '","data":{' + data[:-1] + '}},'
         if len(self.entities) > 0:
             info = info + '"entities":{'
             for prop in self.entities:
                 info = info + str(f'"{prop.id}":{"parent":"{prop.parent}"", "pos_x":"{prop.pos[0]}", "pos_y":"{prop.pos[1]}", "direction":"{prop.direction}"},')
+            info = info[:-1] + "},"      
+        else:
+            info = info[:-1]
+        
+        if len(self.objects) > 0: 
+            info = info + '"objects":{'
+            for obj in self.objects:
+                info = info + str(f'"{obj.id}":{"parent":"{obj.parent}"", "pos_x":"{obj.pos[0]}", "pos_y":"{obj.pos[1]}", "direction":"{obj.direction}"},')
             info = info[:-1] + "}"      
         else:
             info = info[:-1]
-            
+        
         info = info + "}"
         return info.replace("'",'"')
     
     def import_server_info(self, info):
-        print(info.player)
+        self.players = []
+        print('import_server_info')
         try:
-            for player in info.players:
-                try:
-                    self.players[int(player)].update(player)
-                except Exception:
-                    self.players.append(Player.add_player(list(), "Connecting", id=int(player)))
+            for player in info['players']:
+                pl = Player.add_player(list(), "Connecting", id=int(player))
+                if int(player) == int(self.id):
+                    self.players.insert(0,pl)
+                else:
+                    self.players.append(pl)
+                
         except Exception:
             traceback.print_exc()
         try:
-            map = info.map
-            self.size_x = int(map.size_x)
-            self.size_y = int(map.size_y)
+            map = info['map']
+            self.size_x = int(map['size_x'])
+            self.size_y = int(map['size_y'])
             map_data = []
-            for line in map.data:
-                map_data.append(line.value)
+            for line, string in map['data'].items():
+                map_data.append(list())
+                for chr in string:
+                    map_data[int(line)].append(chr)
+                
             self.map = map_data
         except Exception:
             traceback.print_exc()
-            quit()
             pass

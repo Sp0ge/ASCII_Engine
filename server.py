@@ -129,8 +129,3 @@ class Server():
                 traceback.print_exc()
                 break
                
-            
-         
-# if __name__ == "__main__":
-#     Server().start_hosting()
-#     Server().connect_to_server("169.254.83.194")
