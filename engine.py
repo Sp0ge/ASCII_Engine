@@ -10,7 +10,7 @@ import random
 class Engine(Server):
     def __init__(self, size=[200,100], spawn_rate=20, name="Justachankin", server=False):
         self.server = bool(server)
-        self.id = 9
+        self.id = 0
         self.remote_ip = ""
         if not self.server:
             self.remote_ip=str(input("Ip to Connect>>"))
@@ -21,17 +21,16 @@ class Engine(Server):
         self.max_objects = int(((size[0]*size[1])//500) * int(spawn_rate))
         self.entities = list() 
         self.delay = 0.03
-        self.players = Player.add_player(list(), name, id=1)
+        self.players = Player.add_player(list(), name, id=0)
         self.objects = list()
         self.map = list()
         self.display = list()
         Server.__init__(self)
+        self.map_gen()
         if self.server:
-            self.map_gen()
-            threading.Thread(target=self.start_hosting, args=(), daemon=True).start()
+            self.start_hosting()
         else:
-            self.connect_to_server(self.ip)
-            self.sever = threading.Thread(target=self.connect_to_server, args=([self.remote_ip]), daemon=True).start()
+            self.connect_to_server(self.remote_ip)
             
     def map_gen(self):
         print('map_gen')
@@ -77,9 +76,10 @@ class Engine(Server):
                 
     def map_update(self):
         print('map_update')
-        mu = threading.Thread(target=self.map_gen, args=(), daemon=True)
-        mu.start()
-        mu.join()
+        if not self.server:
+            mu = threading.Thread(target=self.map_gen, args=(), daemon=True)
+            mu.start()
+        
             
     
     def display_gen(self):
@@ -203,7 +203,6 @@ class Engine(Server):
                 map_data.append(list())
                 for chr in string:
                     map_data[int(line)].append(chr)
-                
             self.map = map_data
         except Exception:
             traceback.print_exc()

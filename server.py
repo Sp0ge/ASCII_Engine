@@ -15,7 +15,7 @@ class Server():
         self.bind_status = False
         self.connect_status = False
         self.port = int(25097)
-        self.ip = "192.168.0.26"#str(socket.gethostbyname(socket.gethostname()))
+        self.ip = "127.0.0.1"#str(socket.gethostbyname(socket.gethostname()))
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         
@@ -54,10 +54,7 @@ class Server():
         for i in range(11):
             try:
                 self.sock.connect((ip, port))
-                p = threading.Thread(target=self.server_connect_thread, args=([]), daemon=True)
-                p.start()
-                p.join()
-                self.server_connect_thread
+                self.server_connect_thread()
                 return True
             except Exception as e:
                 traceback.print_exc()
@@ -67,9 +64,8 @@ class Server():
     
     def connected_client_thread(self, conn, addr):
         player = Player(name="Connecting",pos=[20,20])
-        self.players.append(player)
-        id = len(self.players)
-        player.id = id
+        player.id = len(self.players) + 1
+        self.players.insert(player.id,player)
         info = self.export_server_info()
         conn.send(json.dumps('{"player_id":"' + str(player.id) + '"}').encode("utf-8"))
         conn.send(json.dumps(info).encode("utf-8"))
@@ -91,7 +87,7 @@ class Server():
                             print(f"Client id[{id}] ACCEPTED")
                         else:
                             self.import_server_info(data)
-                    #print(info)
+                    print(info)
                     data = self.export_server_info()
                 conn.sendall(str.encode(json.dumps(data)))
                 

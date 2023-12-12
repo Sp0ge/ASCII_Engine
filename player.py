@@ -6,7 +6,7 @@ class Player_Stats():
         self.bullets = 10
         
     def show_stats(self,eng):
-        print(str(f"[ HP: {self.health} ] [ Bullets: {self.bullets} ] [ID: {eng.players[0].id}]"))
+        print(str(f"[ HP: {self.health} ] [ Bullets: {self.bullets} ] [ID: {eng.players[0].id}] [Players: {len(eng.players)}]"))
       
 
 
