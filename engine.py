@@ -99,13 +99,13 @@ class Engine(Server):
     
     def display_show(self):
         # print(self.server_info())
-        os.system("cls||clear")
         camera = self.set_camera()
         mu = threading.Thread(target=self.players[0].check_collision, args=([self.objects]), daemon=True)
         mu.start()
         mu.join()
         self.entities_collision()
         display = self.display_gen()
+        os.system("cls||clear")
         for line in range(camera[0][0],camera[0][1]):
             string = str()
             for char in range(camera[1][0],camera[1][1]):
