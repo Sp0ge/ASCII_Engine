@@ -5,20 +5,12 @@ class Display():
         self.screen_size = (32,32)
         self.display = list()
         
-    def run(self):
+        self.prepare()
+            
+    def prepare(self):
         self.display_clear()
         self.display_init(self.screen_size)
-        self.test()
     
-    @how_it_fast
-    def test(self):
-        i = 0
-        while i != 60:
-            i += 1
-            self.display.clear()
-            self.show()
-            print(i)
-        
     def display_init(self, screen_size):
         self.display.clear()
         for y in range(0, screen_size[1]):
