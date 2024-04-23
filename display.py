@@ -1,10 +1,13 @@
 from debug import how_it_fast
+import win32api
+import os
 
 class Display():
     def __init__(self):
-        self.screen_size = (32,32)
+        self.screen_size = [24,24]
         self.display = list()
-        
+        self.DisplayFrequency = getattr(win32api.EnumDisplaySettings(win32api.EnumDisplayDevices().DeviceName, -1),"DisplayFrequency")
+
         self.prepare()
             
     def prepare(self):
@@ -16,7 +19,7 @@ class Display():
         for y in range(0, screen_size[1]):
             row = []
             for x in range(0, screen_size[0]):
-                row.append(" ")
+                row.append(".")
             self.display.append(row)
             
         for y in range(0, screen_size[1]):
@@ -27,9 +30,10 @@ class Display():
                 self.display[y][0] = "#"
                 self.display[y][-1] = "#"
         
-    def show(self):
+    def display_show(self):
+        self.display_clear()
         for row in self.display:
             print(' '.join(map(str, row)))
     
     def display_clear(self):
-        print("\033c", end="", flush=True)
+        os.system("cls||clear")
