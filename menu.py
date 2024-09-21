@@ -1,4 +1,4 @@
-from consolemenu import SelectionMenu
+from consolemenu import *
 from consolemenu.items import *
 
 class Main():
