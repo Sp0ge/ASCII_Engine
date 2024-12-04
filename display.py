@@ -4,7 +4,7 @@ import os
 
 class Display():
     def __init__(self):
-        self.screen_size = [24,24]
+        self.screen_size = [12,12]
         self.display = list()
         self.DisplayFrequency = getattr(win32api.EnumDisplaySettings(win32api.EnumDisplayDevices().DeviceName, -1),"DisplayFrequency")
 
@@ -33,7 +33,7 @@ class Display():
     def display_show(self):
         self.display_clear()
         for row in self.display:
-            print(' '.join(map(str, row)))
+            print(' '.join(map(str,row)))
     
     def display_clear(self):
         os.system("cls||clear")
